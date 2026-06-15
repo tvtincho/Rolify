@@ -114,13 +114,14 @@ export default function TiendaAdminClient({ guildId }: Props) {
     e.preventDefault();
     if (!salaryForm.role_id.trim() || !salaryForm.amount) return;
     setSalarySaving(true);
-    await supabase.from("server_salaries").upsert({
+    const { error } = await supabase.from("server_salaries").upsert({
       guild_id: guildId,
       role_id: salaryForm.role_id.trim(),
       role_name: salaryForm.role_name.trim() || salaryForm.role_id.trim(),
       amount: parseInt(salaryForm.amount) || 0,
     }, { onConflict: "guild_id,role_id" });
     setSalarySaving(false);
+    if (error) { showToast("Error: " + error.message); return; }
     setSalaryForm({ role_id: "", role_name: "", amount: "" });
     setShowSalaryForm(false);
     fetchSalaries();
@@ -128,7 +129,8 @@ export default function TiendaAdminClient({ guildId }: Props) {
   }
 
   async function deleteSalary(id: string) {
-    await supabase.from("server_salaries").delete().eq("id", id);
+    const { error } = await supabase.from("server_salaries").delete().eq("id", id);
+    if (error) { showToast("Error: " + error.message); return; }
     setSalaryDelConfirm(null);
     fetchSalaries();
   }
